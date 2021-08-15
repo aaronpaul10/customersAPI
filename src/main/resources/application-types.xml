@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="accounts" format="json">
+      <types:shape format="weave" example="examples/sample.json.txt"><![CDATA[%dw 2.0
+
+type accounts = Array<{|  salesID: String,   id: String,   firstName: String,   lastName: String,   address: String,   postal: String,   country: String,   creationDate: String,   accountType: String,   miles: Number {"typeId": "int"}|}> {"example": "[{\\\"salesID\\\":\\\"4401Rajesh Patil591412017-08-23T00:52:42+0.00\\\",\\\"id\\\":\\\"4401\\\",\\\"firstName\\\":\\\"Rajesh\\\",\\\"lastName\\\":\\\"Patil\\\",\\\"address\\\":\\\"89 Nibm Road, Pune, Maharashtra\\\",\\\"postal\\\":\\\"59141\\\",\\\"country\\\":\\\"India\\\",\\\"creationDate\\\":\\\"2017-08-23T00:52:42+0.00\\\",\\\"accountType\\\":\\\"personal\\\",\\\"miles\\\":36470}]"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="accounts2" format="json">
+      <types:shape format="weave" example="examples/sample2.json.txt"><![CDATA[%dw 2.0
+
+type accounts2 = Array<{|  id: String,   name: String,   country: String,   accountType: String,   miles: Number {"typeId": "int"}|}> {"example": "[{\\\"id\\\":\\\"4400\\\",\\\"name\\\":\\\"Mat Siva\\\",\\\"country\\\":\\\"USA\\\",\\\"accountType\\\":\\\"business\\\",\\\"miles\\\":119093}]"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#8728ab43-20fe-45ea-9726-70d068d340f8">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="accounts"/>
+        </types:message>
+      </types:input-event>
+      <types:output-event>
+        <types:message>
+          <types:payload type="accounts2"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#f0b16eaa-430c-4916-bcd7-5bcb1f68b3f3">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="accounts"/>
+        </types:message>
+      </types:input-event>
+      <types:output-event>
+        <types:message>
+          <types:payload type="accounts2"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

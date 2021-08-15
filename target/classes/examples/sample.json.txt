@@ -1,0 +1,14 @@
+[
+    {
+        "salesID": "4401Rajesh Patil591412017-08-23T00:52:42+0.00",
+        "id": "4401",
+        "firstName": "Rajesh",
+        "lastName": "Patil",
+        "address": "89 Nibm Road, Pune, Maharashtra",
+        "postal": "59141",
+        "country": "India",
+        "creationDate": "2017-08-23T00:52:42+0.00",
+        "accountType": "personal",
+        "miles": 36470
+    }
+]

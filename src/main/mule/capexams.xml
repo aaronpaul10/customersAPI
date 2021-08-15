@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="d5cf4521-4f41-4464-831f-5d15a802d1d4" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="b4355014-3ecb-4000-81cb-26ced17d0050" >
+		<http:request-connection host="apdev-accounts-ws.cloudhub.io" connectionIdleTimeout="3000000" />
+		<http:default-headers >
+			<http:default-header key="Requester-ID" value="Value" />
+		</http:default-headers>
+	</http:request-config>
+	<flow name="capexamsFlow" doc:id="57edb32d-bd11-4c6e-be73-edcfd9a32b78" >
+		<http:listener doc:name="Listener" doc:id="94fd46d3-e3a3-4f72-88d9-4dd8fad4df29" config-ref="HTTP_Listener_config" path="/api/accounts">
+			<http:error-response statusCode="#[vars.httpStatus]" reasonPhrase="#[error.description]">
+				<http:body ><![CDATA[#[payload]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<set-variable value="#[attributes.queryParams.accountType]" doc:name="Set Variable" doc:id="ff86e108-d434-47cb-8431-fe333018bc74" variableName="accountType"/>
+		<set-variable value="#[attributes.queryParams.lastName]" doc:name="Set Variable" doc:id="894cde73-b7c2-4837-be56-3281cab42a26" variableName="lastName"/>
+		<set-variable value="#[attributes.queryParams.firstName]" doc:name="Set Variable" doc:id="fca14ec0-06b6-423d-8adc-5336a7c1b156" variableName="firstName"/>
+		<validation:is-not-null doc:name="Is not null" doc:id="aad96c77-be4d-40c6-a7bb-3a2efe069130" value="#[vars.accountType]"/>
+		<validation:is-not-null doc:name="Is not null" doc:id="78309794-c62c-4e59-92aa-59720bd57b59" value="#[vars.lastName]"/>
+		<validation:is-not-blank-string doc:name="Is not blank string" doc:id="068dfc1d-6998-41a7-84dd-4bb00b96a314" value="#[vars.lastName]"/>
+		<http:request method="GET" doc:name="Request" doc:id="40f88722-97cd-4a05-95ec-f22b082668f3" config-ref="HTTP_Request_configuration" path='#["/api/accounts?type=$(vars.accountType)&amp;name=$(vars.lastName)"]'/>
+		<choice doc:name="Choice" doc:id="b6ca7735-5e1a-4d67-8713-fce141895e0e" >
+			<when expression="#[vars.firstName != null]">
+				<ee:transform doc:name="Transform Message" doc:id="f0b16eaa-430c-4916-bcd7-5bcb1f68b3f3" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload filter $.firstName == vars.firstName map ( payload01 , indexOfPayload01 ) -> {
+	id: payload01.id,
+	name: (payload01.firstName ++ " " ++ payload01.lastName),
+	country: payload01.country,
+	accountType: payload01.accountType,
+	miles: payload01.miles
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="8728ab43-20fe-45ea-9726-70d068d340f8" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload filter $.lastName == vars.lastName map ( payload01 , indexOfPayload01 ) -> {
+	id: payload01.id,
+	name: (payload01.firstName ++ " " ++ payload01.lastName),
+	country: payload01.country,
+	accountType: payload01.accountType,
+	miles: payload01.miles
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="a3e31cec-c1c1-4bfe-84bc-2c08ce0dd453" >
+				<ee:transform doc:name="Transform Message" doc:id="5e21c700-d6d5-44a3-8295-e538b67b1c6e" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	errorCode: 400,
+	errorMessage: "Missing required parameters accountType and lastName"
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>
